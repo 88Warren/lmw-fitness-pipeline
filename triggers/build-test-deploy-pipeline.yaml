@@ -1,0 +1,197 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-test-deploy-pipeline
+  namespace: lmw-fitness
+spec:
+  description: |
+    This pipeline clones a git repo, builds an image with Kaniko and
+    pushes it to a registry   
+  params:
+    - name: GITHUB_CLONE_URL
+      type: string
+      description: "The URL of the Git repository"
+    - name: GITHUB_HELM_URL
+      type: string
+      description: "The URL of the Git repository"
+    - name: SONAR_HOST_URL
+      type: string
+      description: "SonarQube server URL"
+    - name: PROJECT_KEY
+      type: string
+      description: "Project key in SonarQube"
+    - name: DOCKER_IMAGE
+      type: string
+      description: "The container registry where the image will be pushed"
+    - name: NEXUS_IMAGE
+      type: string
+      description: "The container registry where the image will be pushed"
+    - name: DOCKERFILE
+      type: string
+      description: "Path to the Dockerfile to build. Defaults to ./Dockerfile"
+    - name: CONTEXT
+      type: string
+      description: "The build context used by Kaniko. Defaults to /workspace/source"
+    - name: BUILDER_IMAGE
+      type: string
+      description: "The image to use as the builder. Defaults to gcr.io/kaniko-project/executor:latest"
+    - name: TRIVY_SEVERITY
+      type: string
+      description: "Comma-separated list of severities to scan for. Defaults to CRITICAL,HIGH"
+    - name: VALUES_MANIFEST_PATH
+      type: string
+      description: "Path to the Helm values file"
+    - name: SERVICE_TYPE
+      type: string
+      description: "The type of service to deploy"
+    - name: HELM_FILE
+      type: string
+      description: "Path to the Helm file to commit"
+    - name: COMMIT_MESSAGE
+      type: string
+      description: "The commit message for the image update"
+  workspaces:
+    - name: git-credentials
+    - name: helm-chart
+    - name: source
+    - name: kaniko-config
+    - name: image-credentials
+    - name: nexus-credentials
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+        kind: Task
+      params:
+        - name: GITHUB_CLONE_URL
+          value: $(params.GITHUB_CLONE_URL)
+      workspaces:
+        - name: git-credentials
+          workspace: git-credentials
+        - name: source
+          workspace: source
+
+    - name: helm-chart-clone
+      taskRef:
+        name: helm-chart-clone
+        kind: Task
+      params:
+        - name: GITHUB_HELM_URL
+          value: $(params.GITHUB_HELM_URL)
+      workspaces:
+        - name: helm-chart
+          workspace: helm-chart
+        - name: git-credentials
+          workspace: git-credentials
+
+    - name: sonarqube-scan
+      runAfter: ["git-clone"]
+      taskRef:
+        name: sonarqube-scan
+        kind: Task
+      params:
+        - name: SONAR_HOST_URL
+          value: $(params.SONAR_HOST_URL)
+        - name: PROJECT_KEY
+          value: $(params.PROJECT_KEY)
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: kaniko-build
+      runAfter: ["sonarqube-scan"]
+      taskRef:
+        name: kaniko-build
+        kind: Task
+      workspaces:
+      - name: source
+        workspace: source
+      - name: kaniko-config
+        workspace: kaniko-config
+      - name: nexus-credentials
+        workspace: nexus-credentials
+      params:
+      - name: NEXUS_IMAGE
+        value: $(params.NEXUS_IMAGE)
+      - name: DOCKERFILE
+        value: $(params.DOCKERFILE)
+      - name: CONTEXT
+        value: $(params.CONTEXT)
+      - name: BUILDER_IMAGE
+        value: $(params.BUILDER_IMAGE)
+      - name: EXTRA_ARGS
+        value: ["--cache=false"]
+
+    - name: crane-copy
+      runAfter: ["kaniko-build"]
+      taskRef:
+        name: crane-copy
+        kind: Task
+      workspaces:
+      - name: image-credentials
+        workspace: image-credentials
+      params:
+      - name: NEXUS_IMAGE
+        value: "$(params.NEXUS_IMAGE)"  
+      - name: DOCKER_IMAGE
+        value: "$(params.DOCKER_IMAGE)" 
+
+    - name: trivy-scan
+      runAfter: 
+        - kaniko-build
+        - crane-copy
+      taskRef:
+        name: trivy-scan
+        kind: Task
+      params:
+      - name: TRIVY_SEVERITY
+        value: $(params.TRIVY_SEVERITY)
+      - name: NEXUS_IMAGE
+        value: $(params.NEXUS_IMAGE)
+
+    - name: go-test
+      runAfter: 
+      - kaniko-build
+      - crane-copy
+      taskRef:
+        name: go-test
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
+      
+    - name: update-image
+      runAfter: 
+        - trivy-scan
+        - go-test
+      taskRef:
+        name: update-image
+        kind: Task
+      params:
+        - name: VALUES_MANIFEST_PATH
+          value: $(params.VALUES_MANIFEST_PATH)
+        - name: SERVICE_TYPE
+          value: $(params.SERVICE_TYPE)
+        - name: NEXUS_IMAGE
+          value: $(params.NEXUS_IMAGE)
+      workspaces:
+        - name: helm-chart
+          workspace: helm-chart
+
+    - name: commit-helm-changes
+      runAfter: ["update-image"]
+      taskRef:
+        name: commit-helm-changes
+        kind: Task
+      params:
+        - name: HELM_FILE
+          value: $(params.HELM_FILE)
+        - name: COMMIT_MESSAGE
+          value: "Update image to $(params.NEXUS_IMAGE)"
+        - name: GITHUB_HELM_URL
+          value: $(params.GITHUB_HELM_URL)
+      workspaces:
+        - name: helm-chart
+          workspace: helm-chart
+        - name: git-credentials
+          workspace: git-credentials
