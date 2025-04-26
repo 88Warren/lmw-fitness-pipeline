@@ -1,0 +1,55 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: TriggerTemplate
+metadata:
+  name: trigger-template
+  namespace: lmw-fitness
+spec:
+  params:
+  - name: GIT_REVISION
+  - name: GITHUB_CLONE_URL
+  - name: IMAGE
+  - name: DOCKERFILE
+  - name: CONTEXT
+  - name: EXTRA_ARGS
+  - name: BUILDER_IMAGE
+  resourcetemplates:
+  - apiVersion: tekton.dev/v1
+    kind: PipelineRun
+    metadata:
+      generateName: build-test-deploy-pipeline-run-
+      namespace: lmw-fitness
+    spec:
+      pipelineRef:
+        name: build-test-deploy-pipeline
+      params:
+      - name: GIT_REVISION
+        value: $(tt.params.GIT_REVISION)
+      - name: GITHUB_CLONE_URL
+        value: $(tt.params.GITHUB_CLONE_URL)
+      - name: IMAGE
+        value: $(tt.params.IMAGE)
+      - name: DOCKERFILE
+        value: $(tt.params.DOCKERFILE)
+      - name: CONTEXT
+        value: $(tt.params.CONTEXT)
+      - name: EXTRA_ARGS
+        value: $(tt.params.EXTRA_ARGS)
+      - name: BUILDER_IMAGE
+        value: $(tt.params.BUILDER_IMAGE)
+      workspaces:
+        - name: source
+          volumeClaimTemplate:
+            metadata:
+              creationTimestamp: null
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 1Gi
+        - name: git-credentials
+          secret:
+            secretName: git-credentials
+        - name: docker-config
+          secret:
+            secretName: docker-config

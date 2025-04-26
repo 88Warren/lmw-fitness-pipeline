@@ -1,0 +1,26 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: EventListener
+metadata:
+  name: eventlistener
+  namespace: lmw-fitness
+spec:
+  serviceAccountName: default
+  triggers:
+    - name: trigger
+      bindings:
+        - ref: trigger-binding
+      interceptors:
+        - ref:
+            name: github
+          params:
+            - name: eventTypes
+              value: ["push"]
+        - ref:
+            name: "cel"
+          params:
+            - name: "overlays"
+              value:
+                - key: "debug"
+                  expression: "body"
+      template:
+        ref: trigger-template

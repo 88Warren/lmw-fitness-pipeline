@@ -1,0 +1,29 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: trigger-ingress
+  namespace: lmw-fitness
+  annotations:
+    cert-manager.io/cluster-issuer: letsencrypt-http01
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "30"
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "1800"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "1800"
+    nginx.ingress.kubernetes.io/backend-protocol: "HTTP"
+    nginx.ingress.kubernetes.io/healthcheck-path: "/live"
+spec:
+  ingressClassName: nginx
+  rules:
+    - host: trigger.lmwfitness.co.uk
+      http:
+        paths:
+          - backend:
+              service:
+                name: el-eventlistener
+                port:
+                  number: 8080
+            path: /
+            pathType: Prefix
+  tls:
+    - hosts:
+        - trigger.lmwfitness.co.uk
+      secretName: trigger-lmwfitness-tls
