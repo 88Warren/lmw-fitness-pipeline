@@ -1,2 +1,2 @@
-/helm_chart/templates/secrets/*
+helm_chart/templates/secrets/*
 config.json
