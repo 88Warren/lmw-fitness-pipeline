@@ -5,6 +5,9 @@ metadata:
   namespace: lmw-fitness
 spec:
   serviceAccountName: default
+  resources: 
+    kubernetesResource:
+      serviceType: NodePort
   triggers:
     - name: trigger
       bindings:
@@ -15,12 +18,5 @@ spec:
           params:
             - name: eventTypes
               value: ["push"]
-        - ref:
-            name: "cel"
-          params:
-            - name: "overlays"
-              value:
-                - key: "debug"
-                  expression: "body"
       template:
         ref: trigger-template

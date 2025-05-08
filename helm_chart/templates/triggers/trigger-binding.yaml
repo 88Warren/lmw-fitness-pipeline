@@ -5,8 +5,6 @@ metadata:
   namespace: lmw-fitness
 spec:
   params:
-    - name: GIT_REVISION
-      value: $(body.head_commit.id)
     - name: GITHUB_CLONE_URL
       value: $(body.repository.clone_url)
     - name: IMAGE

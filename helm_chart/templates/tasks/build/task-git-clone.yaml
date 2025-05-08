@@ -5,9 +5,6 @@ metadata:
   namespace: lmw-fitness
 spec:
   params:
-  - name: GIT_REVISION
-    type: string
-    description: The git revision to checkout (branch, tag, commit)
   - name: GITHUB_CLONE_URL
     type: string
     description: The URL of the GitHub repository to clone
@@ -18,8 +15,6 @@ spec:
       #!/bin/sh
       git clone $(params.GITHUB_CLONE_URL) $(workspaces.source.path)
       cd $(workspaces.source.path)
-      git fetch --all
-      git checkout $(params.GIT_REVISION)
       echo "Repository cloned to $(workspaces.source.path)"
   workspaces:
   - name: git-credentials
