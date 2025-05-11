@@ -20,10 +20,12 @@ spec:
     - name: BUILDER_IMAGE
       value: "gcr.io/kaniko-project/executor:v1.5.1@sha256:c6166717f7fe0b7da44908c986137ecfeab21f31ec3992f6e128fff8a94be8a5"
     - name: VALUES_MANIFEST_PATH
-      value: "values.yaml"
+      value: "$(body.repository.description)/values.yaml"
     - name: SERVICE_TYPE
       value: $(body.repository.description)
     - name: HELM_FILE
-      value: "."
-    - name: COMMIT_MESSAGE
-      value: "Update image in Helm chart"
+      value: "$(body.repository.description)/"
+    - name: RELEASE_NAME
+      value: $(body.repository.name)
+    - name: NAMESPACE
+      value: "lmw-fitness"

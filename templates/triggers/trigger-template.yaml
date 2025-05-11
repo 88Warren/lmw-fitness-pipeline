@@ -15,7 +15,8 @@ spec:
   - name: VALUES_MANIFEST_PATH
   - name: SERVICE_TYPE
   - name: HELM_FILE
-  - name: COMMIT_MESSAGE
+  - name: RELEASE_NAME
+  - name: NAMESPACE
   resourcetemplates:
   - apiVersion: tekton.dev/v1
     kind: PipelineRun
@@ -46,8 +47,10 @@ spec:
         value: $(tt.params.SERVICE_TYPE)
       - name: HELM_FILE
         value: $(tt.params.HELM_FILE)
-      - name: COMMIT_MESSAGE
-        value: $(tt.params.COMMIT_MESSAGE)
+      - name: RELEASE_NAME
+        value: $(tt.params.RELEASE_NAME)
+      - name: NAMESPACE
+        value: $(tt.params.NAMESPACE)
       workspaces:
         - name: source
           volumeClaimTemplate:

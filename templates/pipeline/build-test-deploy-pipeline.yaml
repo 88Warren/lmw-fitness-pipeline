@@ -18,7 +18,8 @@ spec:
     - name: VALUES_MANIFEST_PATH
     - name: SERVICE_TYPE
     - name: HELM_FILE
-    - name: COMMIT_MESSAGE
+    - name: RELEASE_NAME
+    - name: NAMESPACE
   workspaces:
     - name: git-credentials
     - name: helm-chart
@@ -93,20 +94,20 @@ spec:
         - name: helm-chart
           workspace: helm-chart
 
-    - name: commit-helm-changes
+    - name: helm-deploy
       runAfter: ["update-image"]
       taskRef:
-        name: commit-helm-changes
+        name: helm-deploy
         kind: Task
       params:
+        - name: RELEASE_NAME
+          value: $(params.RELEASE_NAME)
+        - name: NAMESPACE
+          value: $(params.NAMESPACE)
         - name: HELM_FILE
           value: $(params.HELM_FILE)
-        - name: COMMIT_MESSAGE
-          value: "Update image to $(tasks.kaniko-docker-build.results.IMAGE_URL)"
-        - name: GITHUB_HELM_URL
-          value: $(params.GITHUB_HELM_URL)
+        - name: VALUES_MANIFEST_PATH
+          value: $(params.VALUES_MANIFEST_PATH)
       workspaces:
         - name: helm-chart
           workspace: helm-chart
-        - name: git-credentials
-          workspace: git-credentials
