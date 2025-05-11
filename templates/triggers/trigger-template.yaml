@@ -12,6 +12,10 @@ spec:
   - name: CONTEXT
   - name: EXTRA_ARGS
   - name: BUILDER_IMAGE
+  - name: VALUES_MANIFEST_PATH
+  - name: SERVICE_TYPE
+  - name: HELM_FILE
+  - name: COMMIT_MESSAGE
   resourcetemplates:
   - apiVersion: tekton.dev/v1
     kind: PipelineRun
@@ -36,7 +40,7 @@ spec:
         value: $(tt.params.EXTRA_ARGS)
       - name: BUILDER_IMAGE
         value: $(tt.params.BUILDER_IMAGE)
-       - name: VALUES_MANIFEST_PATH
+      - name: VALUES_MANIFEST_PATH
         value: $(tt.params.VALUES_MANIFEST_PATH)
       - name: SERVICE_TYPE
         value: $(tt.params.SERVICE_TYPE)
