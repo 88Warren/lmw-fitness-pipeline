@@ -18,6 +18,8 @@ spec:
     - name: update-image
       image: mikefarah/yq
       workingDir: $(workspaces.helm-chart.path)
+      securityContext:
+        runAsUser: 0
       script: |
         #!/bin/sh
         if [ "$(params.SERVICE_TYPE)" = "backend" ]; then

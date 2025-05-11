@@ -88,7 +88,7 @@ spec:
         - name: SERVICE_TYPE
           value: $(params.SERVICE_TYPE)
         - name: IMAGE
-          value: $(tasks.kaniko-docker-build.results.IMAGE)
+          value: $(tasks.kaniko-docker-build.results.IMAGE_URL)
       workspaces:
         - name: helm-chart
           workspace: helm-chart
@@ -102,7 +102,7 @@ spec:
         - name: HELM_FILE
           value: $(params.HELM_FILE)
         - name: COMMIT_MESSAGE
-          value: "Update image to $(tasks.kaniko-docker-build.results.IMAGE)"
+          value: "Update image to $(tasks.kaniko-docker-build.results.IMAGE_URL)"
         - name: GITHUB_HELM_URL
           value: $(params.GITHUB_HELM_URL)
       workspaces:
