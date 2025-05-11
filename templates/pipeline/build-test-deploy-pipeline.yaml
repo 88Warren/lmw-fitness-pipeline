@@ -1,0 +1,110 @@
+apiVersion: tekton.dev/v1beta1
+kind: Pipeline
+metadata:
+  name: build-test-deploy-pipeline
+  namespace: lmw-fitness
+spec:
+  description: |
+    This pipeline clones a git repo, builds an image with Kaniko and
+    pushes it to a registry   
+  params:
+    - name: GITHUB_CLONE_URL
+    - name: GITHUB_HELM_URL
+    - name: IMAGE
+    - name: DOCKERFILE
+    - name: CONTEXT
+    - name: EXTRA_ARGS
+    - name: BUILDER_IMAGE
+    - name: VALUES_MANIFEST_PATH
+    - name: SERVICE_TYPE
+    - name: HELM_FILE
+    - name: COMMIT_MESSAGE
+  workspaces:
+    - name: git-credentials
+    - name: helm-chart
+    - name: source
+    - name: docker-config
+  tasks:
+    - name: git-clone
+      taskRef:
+        name: git-clone
+        kind: Task
+      params:
+        - name: GITHUB_CLONE_URL
+          value: $(params.GITHUB_CLONE_URL)
+        - name: deleteExisting
+          value: "true"
+      workspaces:
+        - name: git-credentials
+          workspace: git-credentials
+        - name: source
+          workspace: source
+
+    - name: helm-chart-clone
+      taskRef:
+        name: helm-chart-clone
+        kind: Task
+      params:
+        - name: GITHUB_HELM_URL
+          value: $(params.GITHUB_HELM_URL)
+      workspaces:
+        - name: helm-chart
+          workspace: helm-chart
+        - name: git-credentials
+          workspace: git-credentials
+
+    - name: kaniko-docker-build
+      runAfter: ["git-clone"]
+      taskRef:
+        name: kaniko-docker-build
+        kind: Task
+      workspaces:
+      - name: source
+        workspace: source
+      - name: docker-config
+        workspace: docker-config
+      params:
+      - name: IMAGE
+        value: $(params.IMAGE)
+      - name: DOCKERFILE
+        value: $(params.DOCKERFILE)
+      - name: CONTEXT
+        value: $(params.CONTEXT)
+      - name: EXTRA_ARGS
+        value: $(params.EXTRA_ARGS)
+      - name: BUILDER_IMAGE
+        value: $(params.BUILDER_IMAGE)
+
+    - name: update-image
+      runAfter: ["helm-chart-clone"]
+      taskRef:
+        name: update-image
+        kind: Task
+      params:
+        - name: VALUES_MANIFEST_PATH
+          value: $(params.VALUES_MANIFEST_PATH)
+        - name: SERVICE_TYPE
+          value: $(params.SERVICE_TYPE)
+        - name: NEXUS_IMAGE
+          value: $(params.NEXUS_IMAGE)
+      workspaces:
+        - name: helm-chart
+          workspace: helm-chart
+
+    - name: commit-helm-changes
+      runAfter: ["update-image"]
+      taskRef:
+        name: commit-helm-changes
+        kind: Task
+      params:
+        - name: HELM_FILE
+          value: $(params.HELM_FILE)
+        - name: COMMIT_MESSAGE
+          value: "Update image to $(params.NEXUS_IMAGE)"
+        - name: GITHUB_HELM_URL
+          value: $(params.GITHUB_HELM_URL)
+      workspaces:
+        - name: helm-chart
+          workspace: helm-chart
+        - name: git-credentials
+          workspace: git-credentials

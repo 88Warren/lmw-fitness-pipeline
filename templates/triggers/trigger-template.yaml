@@ -6,6 +6,7 @@ metadata:
 spec:
   params:
   - name: GITHUB_CLONE_URL
+  - name: GITHUB_HELM_URL
   - name: IMAGE
   - name: DOCKERFILE
   - name: CONTEXT
@@ -23,6 +24,8 @@ spec:
       params:
       - name: GITHUB_CLONE_URL
         value: $(tt.params.GITHUB_CLONE_URL)
+      - name: GITHUB_HELM_URL
+        value: $(tt.params.GITHUB_HELM_URL)
       - name: IMAGE
         value: $(tt.params.IMAGE)
       - name: DOCKERFILE
@@ -33,9 +36,27 @@ spec:
         value: $(tt.params.EXTRA_ARGS)
       - name: BUILDER_IMAGE
         value: $(tt.params.BUILDER_IMAGE)
+       - name: VALUES_MANIFEST_PATH
+        value: $(tt.params.VALUES_MANIFEST_PATH)
+      - name: SERVICE_TYPE
+        value: $(tt.params.SERVICE_TYPE)
+      - name: HELM_FILE
+        value: $(tt.params.HELM_FILE)
+      - name: COMMIT_MESSAGE
+        value: $(tt.params.COMMIT_MESSAGE)
       workspaces:
         - name: source
           volumeClaimTemplate:
+            spec:
+              accessModes:
+                - ReadWriteOnce
+              resources:
+                requests:
+                  storage: 1Gi
+        - name: helm-chart
+          volumeClaimTemplate:
+            metadata:
+              creationTimestamp: null
             spec:
               accessModes:
                 - ReadWriteOnce

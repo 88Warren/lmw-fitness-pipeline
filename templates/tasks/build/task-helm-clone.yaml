@@ -1,0 +1,21 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: helm-chart-clone
+  namespace: lmw-fitness
+spec:
+  params:
+  - name: GITHUB_HELM_URL
+    type: string
+    description: "URL of the Helm chart repository"
+  steps:
+  - name: helm-chart-clone
+    image: alpine/git
+    script: |
+      #!/bin/sh
+      git clone $(params.GITHUB_HELM_URL) $(workspaces.helm-chart.path)
+      cd $(workspaces.helm-chart.path)
+      echo "Helm chart cloned to $(workspaces.helm-chart.path)"
+  workspaces:
+  - name: helm-chart
+  - name: git-credentials

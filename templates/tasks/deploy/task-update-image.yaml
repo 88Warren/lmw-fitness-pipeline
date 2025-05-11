@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1beta1
+kind: Task
+metadata:
+  name: update-image
+  namespace: lmw-fitness
+spec:
+  params:
+    - name: VALUES_MANIFEST_PATH
+      type: string
+      description: Path to the helm values to change image name
+    - name: SERVICE_TYPE
+      type: string
+      description: The type of service
+    - name: NEXUS_IMAGE 
+      type: string
+      description: The name of the image that was built 
+  steps:
+    - name: update-image
+      image: mikefarah/yq
+      workingDir: $(workspaces.helm-chart.path)
+      script: |
+        #!/bin/sh
+        if [ "$(params.SERVICE_TYPE)" = "backend" ]; then
+          yq -i '.api.image.repository = "$(params.NEXUS_IMAGE)"' $(params.VALUES_MANIFEST_PATH)
+        else
+          yq -i '.webserver.image.repository = "$(params.NEXUS_IMAGE)"' $(params.VALUES_MANIFEST_PATH)
+        fi
+  workspaces:
+    - name: helm-chart
+  results:
+    - name: IMAGE 
+      description: The name of the image that was built

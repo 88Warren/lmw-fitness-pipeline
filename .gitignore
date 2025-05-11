@@ -1,2 +1,3 @@
-helm_chart/templates/secrets/*
+/templates/secrets/*
+/dashboard/*
 config.json
