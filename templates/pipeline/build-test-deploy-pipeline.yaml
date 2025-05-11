@@ -76,7 +76,9 @@ spec:
         value: $(params.BUILDER_IMAGE)
 
     - name: update-image
-      runAfter: ["helm-chart-clone"]
+      runAfter:
+        - helm-chart-clone
+        - kaniko-docker-build
       taskRef:
         name: update-image
         kind: Task
@@ -85,8 +87,8 @@ spec:
           value: $(params.VALUES_MANIFEST_PATH)
         - name: SERVICE_TYPE
           value: $(params.SERVICE_TYPE)
-        - name: NEXUS_IMAGE
-          value: $(params.NEXUS_IMAGE)
+        - name: IMAGE
+          value: $(tasks.kaniko-docker-build.results.IMAGE)
       workspaces:
         - name: helm-chart
           workspace: helm-chart
@@ -100,7 +102,7 @@ spec:
         - name: HELM_FILE
           value: $(params.HELM_FILE)
         - name: COMMIT_MESSAGE
-          value: "Update image to $(params.NEXUS_IMAGE)"
+          value: "Update image to $(tasks.kaniko-docker-build.results.IMAGE)"
         - name: GITHUB_HELM_URL
           value: $(params.GITHUB_HELM_URL)
       workspaces:

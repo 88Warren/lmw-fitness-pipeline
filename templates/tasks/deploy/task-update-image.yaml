@@ -11,7 +11,7 @@ spec:
     - name: SERVICE_TYPE
       type: string
       description: The type of service
-    - name: NEXUS_IMAGE 
+    - name: IMAGE 
       type: string
       description: The name of the image that was built 
   steps:
@@ -21,12 +21,9 @@ spec:
       script: |
         #!/bin/sh
         if [ "$(params.SERVICE_TYPE)" = "backend" ]; then
-          yq -i '.api.image.repository = "$(params.NEXUS_IMAGE)"' $(params.VALUES_MANIFEST_PATH)
+          yq -i '.api.image.repository = "$(params.IMAGE)"' $(params.VALUES_MANIFEST_PATH)
         else
-          yq -i '.webserver.image.repository = "$(params.NEXUS_IMAGE)"' $(params.VALUES_MANIFEST_PATH)
+          yq -i '.webserver.image.repository = "$(params.IMAGE)"' $(params.VALUES_MANIFEST_PATH)
         fi
   workspaces:
     - name: helm-chart
-  results:
-    - name: IMAGE 
-      description: The name of the image that was built
