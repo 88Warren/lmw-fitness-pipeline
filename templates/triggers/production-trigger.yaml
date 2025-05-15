@@ -1,0 +1,18 @@
+apiVersion: triggers.tekton.dev/v1beta1
+kind: Trigger
+metadata:
+  name: production-trigger
+  namespace: lmw-fitness
+spec:
+  interceptors:
+    - ref:
+        name: "cel"
+      params:
+        - name: "filter"
+          value: >
+          (header['X-GitHub-Event'] == 'push' && body.ref == 'refs/heads/production') ||
+          (header['X-GitHub-Event'] == 'pull_request' && body.pull_request.base.ref == 'production')
+  bindings:
+    - ref: trigger-binding
+  template:
+    ref: trigger-template
