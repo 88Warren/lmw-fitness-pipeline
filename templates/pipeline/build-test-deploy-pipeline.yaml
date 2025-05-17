@@ -9,18 +9,40 @@ spec:
     pushes it to a registry   
   params:
     - name: GITHUB_CLONE_URL
+      type: string
+      description: URL of the GitHub repository to clone
     - name: GITHUB_HELM_URL
+      type: string
+      description: URL of the GitHub Helm chart repository to clone
     - name: IMAGE
+      type: string
+      description: Name of the image to build and push
     - name: DOCKERFILE
+      type: string
+      description: Path to the Dockerfile
     - name: CONTEXT
+      type: string
+      description: Path to the build context
     - name: EXTRA_ARGS
+      type: string
+      description: Additional arguments for the Kaniko build
     - name: BUILDER_IMAGE
+      type: string
+      description: Name of the Kaniko builder image
     - name: VALUES_MANIFEST_PATH
+      type: string
+      description: Path to the Helm values manifest file
     - name: SERVICE_TYPE
+      type: string  
+      description: Type of service to deploy (e.g. "web", "api", etc.)
     - name: HELM_FILE
+      type: string
+      description: Path to the Helm chart file
     # - name: RELEASE_NAME
     # - name: NAMESPACE
     - name: COMMIT_MESSAGE
+      type: string
+      description: Commit message for the Helm chart changes
   workspaces:
     - name: git-credentials
     - name: helm-chart
