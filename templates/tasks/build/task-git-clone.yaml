@@ -17,7 +17,6 @@ spec:
       cd $(workspaces.source.path)
       echo "Repository cloned to $(workspaces.source.path)"
       ls -l $(workspaces.source.path)
-      ls -l $(workspaces.source.path)/frontend
   workspaces:
   - name: git-credentials
   - name: source
