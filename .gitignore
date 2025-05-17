@@ -1,2 +1,3 @@
 /templates/secrets/*
 config.json
+/templates/tasks/deploy/task-helm-deploy.yaml
