@@ -30,3 +30,5 @@ spec:
       value: $(body.repository.name)
     - name: NAMESPACE
       value: "lmw-fitness"
+    - name: COMMIT_MESSAGE
+      value: "Update image in Helm chart"

@@ -18,8 +18,9 @@ spec:
     - name: VALUES_MANIFEST_PATH
     - name: SERVICE_TYPE
     - name: HELM_FILE
-    - name: RELEASE_NAME
-    - name: NAMESPACE
+    # - name: RELEASE_NAME
+    # - name: NAMESPACE
+    - name: COMMIT_MESSAGE
   workspaces:
     - name: git-credentials
     - name: helm-chart
@@ -94,20 +95,38 @@ spec:
         - name: helm-chart
           workspace: helm-chart
 
-    - name: helm-deploy
+    # - name: helm-deploy
+    #   runAfter: ["update-image"]
+    #   taskRef:
+    #     name: helm-deploy
+    #     kind: Task
+    #   params:
+    #     - name: RELEASE_NAME
+    #       value: $(params.RELEASE_NAME)
+    #     - name: NAMESPACE
+    #       value: $(params.NAMESPACE)
+    #     - name: HELM_FILE
+    #       value: $(params.HELM_FILE)
+    #     - name: VALUES_MANIFEST_PATH
+    #       value: $(params.VALUES_MANIFEST_PATH)
+    #   workspaces:
+    #     - name: helm-chart
+    #       workspace: helm-chart
+    
+    - name: commit-helm-changes
       runAfter: ["update-image"]
       taskRef:
-        name: helm-deploy
+        name: commit-helm-changes
         kind: Task
       params:
-        - name: RELEASE_NAME
-          value: $(params.RELEASE_NAME)
-        - name: NAMESPACE
-          value: $(params.NAMESPACE)
         - name: HELM_FILE
           value: $(params.HELM_FILE)
-        - name: VALUES_MANIFEST_PATH
-          value: $(params.VALUES_MANIFEST_PATH)
+        - name: COMMIT_MESSAGE
+          value: "Update image to $(params.NEXUS_IMAGE)"
+        - name: GITHUB_HELM_URL
+          value: $(params.GITHUB_HELM_URL)
       workspaces:
         - name: helm-chart
           workspace: helm-chart
+        - name: git-credentials
+          workspace: git-credentials
