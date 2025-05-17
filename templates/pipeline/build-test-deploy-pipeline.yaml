@@ -122,7 +122,7 @@ spec:
         - name: HELM_FILE
           value: $(params.HELM_FILE)
         - name: COMMIT_MESSAGE
-          value: "Update image to $(params.NEXUS_IMAGE)"
+          value: $(params.COMMIT_MESSAGE)
         - name: GITHUB_HELM_URL
           value: $(params.GITHUB_HELM_URL)
       workspaces:
