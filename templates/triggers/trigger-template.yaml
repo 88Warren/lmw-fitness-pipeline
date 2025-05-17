@@ -53,6 +53,7 @@ spec:
       # - name: NAMESPACE
       #   value: $(tt.params.NAMESPACE)
       - name: COMMIT_MESSAGE
+        value: $(tt.params.COMMIT_MESSAGE)
       workspaces:
         - name: source
           volumeClaimTemplate:
