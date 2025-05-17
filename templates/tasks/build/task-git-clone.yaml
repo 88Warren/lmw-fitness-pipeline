@@ -16,6 +16,8 @@ spec:
       git clone $(params.GITHUB_CLONE_URL) $(workspaces.source.path)
       cd $(workspaces.source.path)
       echo "Repository cloned to $(workspaces.source.path)"
+      ls -l $(workspaces.source.path)
+      ls -l $(workspaces.source.path)/frontend
   workspaces:
   - name: git-credentials
   - name: source
