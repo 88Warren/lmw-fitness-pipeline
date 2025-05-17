@@ -53,9 +53,6 @@ spec:
         set -e
         image="$(params.IMAGE)"
         echo -n "${image}" | tee "$(results.IMAGE_URL.path)"
-        ls -l $(workspaces.source.path)
-        ls -l $(workspaces.source.path)/frontend
-        ls -l $(workspaces.source.path)/$(params.CONTEXT)
   workspaces:
     - description: Holds the context and Dockerfile
       name: source
