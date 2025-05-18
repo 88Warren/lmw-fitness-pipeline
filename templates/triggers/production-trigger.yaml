@@ -10,8 +10,8 @@ spec:
       params:
         - name: "filter"
           value: >
-            (header['X-GitHub-Event'] == 'push' && body.ref == 'refs/heads/production') ||
-            (header['X-GitHub-Event'] == 'pull_request' && body.pull_request.base.ref == 'production')
+            (header['X-GitHub-Event'] == 'push' && body.ref == 'refs/heads/main') ||
+            (header['X-GitHub-Event'] == 'pull_request' && body.pull_request.base.ref == 'main')
   bindings:
     - ref: trigger-binding
   template:
