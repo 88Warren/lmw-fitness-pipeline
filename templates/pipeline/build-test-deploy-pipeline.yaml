@@ -23,9 +23,9 @@ spec:
     - name: CONTEXT
       type: string
       description: Path to the build context
-    - name: EXTRA_ARGS
-      type: string
-      description: Additional arguments for the Kaniko build
+    # - name: EXTRA_ARGS
+    #   type: string
+    #   description: Additional arguments for the Kaniko build
     - name: BUILDER_IMAGE
       type: string
       description: Name of the Kaniko builder image
@@ -94,8 +94,8 @@ spec:
         value: $(params.DOCKERFILE)
       - name: CONTEXT
         value: $(params.CONTEXT)
-      - name: EXTRA_ARGS
-        value: $(params.EXTRA_ARGS)
+      # - name: EXTRA_ARGS
+      #   value: $(params.EXTRA_ARGS)
       - name: BUILDER_IMAGE
         value: $(params.BUILDER_IMAGE)
 

@@ -10,7 +10,7 @@ spec:
   - name: IMAGE
   - name: DOCKERFILE
   - name: CONTEXT
-  - name: EXTRA_ARGS
+  # - name: EXTRA_ARGS
   - name: BUILDER_IMAGE
   - name: VALUES_MANIFEST_PATH
   - name: SERVICE_TYPE
@@ -38,8 +38,8 @@ spec:
         value: $(tt.params.DOCKERFILE)
       - name: CONTEXT
         value: $(tt.params.CONTEXT)
-      - name: EXTRA_ARGS
-        value: $(tt.params.EXTRA_ARGS)
+      # - name: EXTRA_ARGS
+      #   value: $(tt.params.EXTRA_ARGS)
       - name: BUILDER_IMAGE
         value: $(tt.params.BUILDER_IMAGE)
       - name: VALUES_MANIFEST_PATH

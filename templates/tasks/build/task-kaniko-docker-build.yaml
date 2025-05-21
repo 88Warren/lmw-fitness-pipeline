@@ -20,7 +20,10 @@ spec:
     - name: IMAGE
     - name: DOCKERFILE
     - name: CONTEXT
-    - name: EXTRA_ARGS
+    # - name: EXTRA_ARGS
+    #   description: Extra arguments to pass to kaniko executor
+    #   type: string
+    #   default: ""
     - name: BUILDER_IMAGE
   results:
     - name: IMAGE_DIGEST
@@ -37,11 +40,13 @@ spec:
         echo "Listing contents of /workspace/source recursively:"
         ls -R /workspace/source
     - args:
-        - $(params.EXTRA_ARGS)
         - --dockerfile=$(params.DOCKERFILE)
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
         - --destination=$(params.IMAGE)
         - --digest-file=$(results.IMAGE_DIGEST.path)
+        - "--cache=false"  
+        - "--build-arg=VITE_BACKEND_URL={{ .Values.webserver.backendUrl }}"
+        - "--build-arg=VITE_RECAPTCHA_SITE_KEY={{ .Values.webserver.recaptcha }}"
       image: $(params.BUILDER_IMAGE)
       name: build-and-push
       securityContext:
