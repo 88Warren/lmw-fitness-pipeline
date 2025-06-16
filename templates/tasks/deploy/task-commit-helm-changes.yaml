@@ -11,6 +11,7 @@ spec:
     - name: GITHUB_HELM_URL
       type: string
       description: "URL of the Helm chart repository"
+      default: "https://github.com/88Warren/lmw-fitness-helmchart.git"
     - name: COMMIT_MESSAGE
       type: string
       description: "The commit message for the Helm chart update"
@@ -34,6 +35,9 @@ spec:
         git config --global --list
         git config --global credential.helper store
         cd $(workspaces.helm-chart.path)
+
+        # Pull latest changes first
+        git pull origin main --rebase
 
         git add $(params.HELM_FILE)
         git commit -m "$(params.COMMIT_MESSAGE)"
