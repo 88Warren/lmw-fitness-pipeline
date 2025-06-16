@@ -36,8 +36,20 @@ spec:
         git config --global credential.helper store
         cd $(workspaces.helm-chart.path)
 
-        # Pull latest changes first
-        git pull origin main --rebase
+        # Check for unstaged changes and stash them
+        if ! git diff --quiet; then
+          echo "Stashing unstaged changes..."
+          git stash save "Temporary stash before pull"
+        fi
+
+        # Pull latest changes
+        git pull $(params.GITHUB_HELM_URL) main --rebase
+
+        # Apply stashed changes if they exist
+        if git stash list | grep -q "Temporary stash before pull"; then
+          echo "Applying stashed changes..."
+          git stash pop
+        fi
 
         git add $(params.HELM_FILE)
         git commit -m "$(params.COMMIT_MESSAGE)"
