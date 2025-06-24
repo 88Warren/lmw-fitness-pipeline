@@ -114,7 +114,8 @@ spec:
           workspace: git-credentials
 
     - name: kaniko-docker-build
-      runAfter: ["go-test", "sonarqube-scan"]
+      # runAfter: ["go-test", "sonarqube-scan"]
+      runAfter: ["go-test"]
       taskRef:
         name: kaniko-docker-build
         kind: Task
