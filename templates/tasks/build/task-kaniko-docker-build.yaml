@@ -33,8 +33,8 @@ spec:
       image: busybox
       script: |
         #!/bin/sh
-        echo "Listing contents of /workspace/source recursively:"
-        ls -R /workspace/source
+        # echo "Listing contents of /workspace/source recursively:"
+        # ls -R /workspace/source
         echo "cat $(workspaces.source.path)/$(params.DOCKERFILE)"
     - args:
         - --dockerfile=$(params.DOCKERFILE)

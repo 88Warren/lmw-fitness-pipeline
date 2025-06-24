@@ -22,7 +22,7 @@ spec:
     - name: BUILDER_IMAGE
       value: "gcr.io/kaniko-project/executor:v1.5.1@sha256:c6166717f7fe0b7da44908c986137ecfeab21f31ec3992f6e128fff8a94be8a5"
     - name: TRIVY_SEVERITY
-      value: "CRITICAL,HIGH"
+      value: "CRITICAL"
     - name: VALUES_MANIFEST_PATH
       value: "$(body.repository.description)/values.yaml"
     - name: SERVICE_TYPE
