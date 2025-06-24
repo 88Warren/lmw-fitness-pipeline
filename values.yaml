@@ -16,7 +16,8 @@ image:
 webserver:
   recaptcha: 6Ldn3-0qAAAAAMWv4iekZdMl4Xrfj2Av2zEL7onD
   backendUrl: "https://api.lmwfitness.co.uk"
-  
+  cacheBreaker: "$(context.pipelineRun.startTime)"
+
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.
