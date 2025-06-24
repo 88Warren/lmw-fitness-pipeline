@@ -20,10 +20,6 @@ spec:
     - name: IMAGE
     - name: DOCKERFILE
     - name: CONTEXT
-    # - name: EXTRA_ARGS
-    #   description: Extra arguments to pass to kaniko executor
-    #   type: string
-    #   default: ""
     - name: BUILDER_IMAGE
   results:
     - name: IMAGE_DIGEST
@@ -47,6 +43,7 @@ spec:
         - "--cache=false"  
         - "--build-arg=VITE_BACKEND_URL={{ .Values.webserver.backendUrl }}"
         - "--build-arg=VITE_RECAPTCHA_SITE_KEY={{ .Values.webserver.recaptcha }}"
+        - "--build-arg=CACHE_BREAKER=$(date +%s)"
       image: $(params.BUILDER_IMAGE)
       name: build-and-push
       securityContext:
