@@ -146,9 +146,7 @@ spec:
           value: $(params.TRIVY_SEVERITY)
           
     - name: update-image
-      runAfter:
-        - helm-chart-clone
-        - kaniko-docker-build
+      runAfter: ["trivy-scan"]
       taskRef:
         name: update-image
         kind: Task
