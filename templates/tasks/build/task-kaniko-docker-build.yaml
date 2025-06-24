@@ -29,12 +29,13 @@ spec:
       type: string
       description: URL of the image just built.
   steps:
-    - name: debug-ls
+    - name: debug
       image: busybox
       script: |
         #!/bin/sh
         echo "Listing contents of /workspace/source recursively:"
         ls -R /workspace/source
+        echo "cat $(workspaces.source.path)/$(params.DOCKERFILE)"
     - args:
         - --dockerfile=$(params.DOCKERFILE)
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
