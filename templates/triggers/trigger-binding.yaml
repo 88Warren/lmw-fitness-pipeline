@@ -7,6 +7,10 @@ spec:
   params:
     - name: GITHUB_CLONE_URL
       value: $(body.repository.clone_url)
+    # - name: SONAR_HOST_URL
+    #   value: "https://sonarqube.lmwfitness.com"
+    # - name: PROJECT_KEY
+    #   value: "$(body.repository.name)-$(body.after)"
     - name: GITHUB_HELM_URL
       value: "https://github.com/88Warren/lmw-fitness-helmchart.git"
     - name: IMAGE
@@ -15,23 +19,15 @@ spec:
       value: Dockerfile
     - name: CONTEXT
       value: "."
-    # - name: EXTRA_ARGS
-    #   value: >-
-    #     --cache=false
-    #     --build-arg VITE_BACKEND_URL={{ .Values.webserver.backendUrl }}
-    #     --build-arg VITE_RECAPTCHA_SITE_KEY={{ .Values.webserver.recaptcha }}
     - name: BUILDER_IMAGE
       value: "gcr.io/kaniko-project/executor:v1.5.1@sha256:c6166717f7fe0b7da44908c986137ecfeab21f31ec3992f6e128fff8a94be8a5"
-      # Ensure repository description is set to frontend and backend
+    - name: TRIVY_SEVERITY
+      value: "CRITICAL,HIGH"
     - name: VALUES_MANIFEST_PATH
       value: "$(body.repository.description)/values.yaml"
     - name: SERVICE_TYPE
       value: $(body.repository.description)
     - name: HELM_FILE
       value: "$(body.repository.description)/"
-    # - name: RELEASE_NAME
-    #   value: $(body.repository.name)
-    # - name: NAMESPACE
-    #   value: "lmw-fitness"
     - name: COMMIT_MESSAGE
       value: "Update image in Helm chart"

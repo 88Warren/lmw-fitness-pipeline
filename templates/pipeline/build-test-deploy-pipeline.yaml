@@ -11,6 +11,12 @@ spec:
     - name: GITHUB_CLONE_URL
       type: string
       description: URL of the GitHub repository to clone
+    # - name: SONAR_HOST_URL
+    #   type: string
+    #   description: URL of the SonarQube server
+    # - name: PROJECT_KEY
+    #   type: string
+    #   description: Key of the project in SonarQube
     - name: GITHUB_HELM_URL
       type: string
       description: URL of the GitHub Helm chart repository to clone
@@ -23,12 +29,12 @@ spec:
     - name: CONTEXT
       type: string
       description: Path to the build context
-    # - name: EXTRA_ARGS
-    #   type: string
-    #   description: Additional arguments for the Kaniko build
     - name: BUILDER_IMAGE
       type: string
       description: Name of the Kaniko builder image
+    - name: TRIVY_SEVERITY
+      type: string
+      description: Comma-separated list of severities to scan for (e.g. "CRITICAL,HIGH")
     - name: VALUES_MANIFEST_PATH
       type: string
       description: Path to the Helm values manifest file
@@ -38,8 +44,6 @@ spec:
     - name: HELM_FILE
       type: string
       description: Path to the Helm chart file
-    # - name: RELEASE_NAME
-    # - name: NAMESPACE
     - name: COMMIT_MESSAGE
       type: string
       description: Commit message for the Helm chart changes
@@ -63,6 +67,38 @@ spec:
           workspace: git-credentials
         - name: source
           workspace: source
+          
+    - name: go-test
+      runAfter: ["git-clone"]
+      taskRef:
+        name: go-test
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: react-test
+      runAfter: ["git-clone"]
+      taskRef:
+        name: react-test
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
+
+  # - name: sonarqube-scan
+  #   runAfter: ["go-test"]
+  #   taskRef:
+  #     name: sonarqube-scan
+  #     kind: Task
+  #   workspaces:
+  #     - name: source
+  #       workspace: source
+  #   params:
+  #     - name: SONAR_HOST_URL
+  #       value: $(params.SONAR_HOST_URL)
+  #     - name: PROJECT_KEY
+  #       value: $(params.PROJECT_KEY)
 
     - name: helm-chart-clone
       taskRef:
@@ -78,7 +114,7 @@ spec:
           workspace: git-credentials
 
     - name: kaniko-docker-build
-      runAfter: ["git-clone"]
+      runAfter: ["go-test", "sonarqube-scan"]
       taskRef:
         name: kaniko-docker-build
         kind: Task
@@ -94,11 +130,20 @@ spec:
         value: $(params.DOCKERFILE)
       - name: CONTEXT
         value: $(params.CONTEXT)
-      # - name: EXTRA_ARGS
-      #   value: $(params.EXTRA_ARGS)
       - name: BUILDER_IMAGE
         value: $(params.BUILDER_IMAGE)
 
+    - name: trivy-scan
+      runAfter: ["kaniko-docker-build"]
+      taskRef:
+        name: trivy-scan
+        kind: Task
+      params:
+        - name: IMAGE
+          value: $(tasks.kaniko-docker-build.results.IMAGE_URL)
+        - name: TRIVY_SEVERITY
+          value: $(params.TRIVY_SEVERITY)
+          
     - name: update-image
       runAfter:
         - helm-chart-clone
@@ -116,24 +161,6 @@ spec:
       workspaces:
         - name: helm-chart
           workspace: helm-chart
-
-    # - name: helm-deploy
-    #   runAfter: ["update-image"]
-    #   taskRef:
-    #     name: helm-deploy
-    #     kind: Task
-    #   params:
-    #     - name: RELEASE_NAME
-    #       value: $(params.RELEASE_NAME)
-    #     - name: NAMESPACE
-    #       value: $(params.NAMESPACE)
-    #     - name: HELM_FILE
-    #       value: $(params.HELM_FILE)
-    #     - name: VALUES_MANIFEST_PATH
-    #       value: $(params.VALUES_MANIFEST_PATH)
-    #   workspaces:
-    #     - name: helm-chart
-    #       workspace: helm-chart
     
     - name: commit-helm-changes
       runAfter: ["update-image"]
