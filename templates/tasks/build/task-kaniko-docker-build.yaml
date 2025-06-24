@@ -44,6 +44,7 @@ spec:
         - "--build-arg=VITE_BACKEND_URL={{ .Values.webserver.backendUrl }}"
         - "--build-arg=VITE_RECAPTCHA_SITE_KEY={{ .Values.webserver.recaptcha }}"
         - "--build-arg=CACHE_BREAKER=$(date +%s)"
+        - "--verbosity=debug" 
       image: $(params.BUILDER_IMAGE)
       name: build-and-push
       securityContext:
