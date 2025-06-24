@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: react-test
-  namespace: lmwprac
+  namespace: lmw-fitness
 spec:
   steps:
     - name: run-tests

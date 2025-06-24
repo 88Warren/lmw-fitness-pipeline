@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: sonarqube-scan
-  namespace: lmwprac
+  namespace: lmw-fitness
 spec:
   params:
     - name: SONAR_HOST_URL

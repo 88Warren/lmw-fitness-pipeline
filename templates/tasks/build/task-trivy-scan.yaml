@@ -2,7 +2,7 @@ apiVersion: tekton.dev/v1
 kind: Task
 metadata:
   name: trivy-scan
-  namespace: lmwprac
+  namespace: lmw-fitness
 spec:
   description: Scans a built Docker image for vulnerabilities using Trivy.
   params:
