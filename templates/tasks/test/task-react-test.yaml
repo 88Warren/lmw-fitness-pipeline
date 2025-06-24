@@ -6,7 +6,7 @@ metadata:
 spec:
   steps:
     - name: run-tests
-      image: node:18
+      image: node:20
       workingDir: $(workspaces.source.path)/web
       script: |
         #!/bin/sh
