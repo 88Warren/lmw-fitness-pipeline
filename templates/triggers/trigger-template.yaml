@@ -30,8 +30,6 @@ spec:
       params:
       - name: GITHUB_CLONE_URL
         value: $(tt.params.GITHUB_CLONE_URL)
-      - name: REPO_NAME
-        value: lmw-fitness-frontend
       # - name: SONAR_HOST_URL
       #   value: $(tt.params.SONAR_HOST_URL)
       # - name: PROJECT_KEY
