@@ -11,6 +11,9 @@ spec:
     - name: GITHUB_CLONE_URL
       type: string
       description: URL of the GitHub repository to clone
+    - name: REPO_NAME
+      type: string
+      description: Name of the repository to build and push
     # - name: SONAR_HOST_URL
     #   type: string
     #   description: URL of the SonarQube server
@@ -85,6 +88,10 @@ spec:
       workspaces:
         - name: source
           workspace: source
+      when:
+      - input: "$(params.REPO_NAME)"
+        operator: in
+        values: ["lmw-fitness-frontend"]
 
   # - name: sonarqube-scan
   #   runAfter: ["go-test"]
