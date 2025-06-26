@@ -67,6 +67,15 @@ spec:
           workspace: git-credentials
         - name: source
           workspace: source
+
+    - name: eslint-lint
+      runAfter: ["git-clone"]
+      taskRef:
+        name: eslint-lint
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
           
     - name: go-test
       runAfter: ["git-clone"]
@@ -114,8 +123,8 @@ spec:
           workspace: git-credentials
 
     - name: kaniko-docker-build
-      # runAfter: ["go-test", "sonarqube-scan"]
-      runAfter: ["go-test"]
+      # runAfter: ["go-test", "sonarqube-scan", "eslint-lint", "react-test"]
+      runAfter: ["go-test", "eslint-lint", "react-test"]
       taskRef:
         name: kaniko-docker-build
         kind: Task
