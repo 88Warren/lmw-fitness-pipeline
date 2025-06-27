@@ -30,10 +30,6 @@ spec:
       params:
       - name: GITHUB_CLONE_URL
         value: $(tt.params.GITHUB_CLONE_URL)
-      # - name: SONAR_HOST_URL
-      #   value: $(tt.params.SONAR_HOST_URL)
-      # - name: PROJECT_KEY
-      #   value: $(tt.params.PROJECT_KEY)
       - name: GITHUB_HELM_URL
         value: $(tt.params.GITHUB_HELM_URL)
       - name: IMAGE

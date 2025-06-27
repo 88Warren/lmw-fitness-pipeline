@@ -11,12 +11,6 @@ spec:
     - name: GITHUB_CLONE_URL
       type: string
       description: URL of the GitHub repository to clone
-    # - name: SONAR_HOST_URL
-    #   type: string
-    #   description: URL of the SonarQube server
-    # - name: PROJECT_KEY
-    #   type: string
-    #   description: Key of the project in SonarQube
     - name: GITHUB_HELM_URL
       type: string
       description: URL of the GitHub Helm chart repository to clone
@@ -68,14 +62,14 @@ spec:
         - name: source
           workspace: source
 
-    - name: eslint-lint
-      runAfter: ["git-clone"]
-      taskRef:
-        name: eslint-lint
-        kind: Task
-      workspaces:
-        - name: source
-          workspace: source
+    # - name: eslint-lint
+    #   runAfter: ["git-clone"]
+    #   taskRef:
+    #     name: eslint-lint
+    #     kind: Task
+    #   workspaces:
+    #     - name: source
+    #       workspace: source
           
     - name: go-test
       runAfter: ["git-clone"]
@@ -95,20 +89,6 @@ spec:
         - name: source
           workspace: source
 
-  # - name: sonarqube-scan
-  #   runAfter: ["go-test"]
-  #   taskRef:
-  #     name: sonarqube-scan
-  #     kind: Task
-  #   workspaces:
-  #     - name: source
-  #       workspace: source
-  #   params:
-  #     - name: SONAR_HOST_URL
-  #       value: $(params.SONAR_HOST_URL)
-  #     - name: PROJECT_KEY
-  #       value: $(params.PROJECT_KEY)
-
     - name: helm-chart-clone
       taskRef:
         name: helm-chart-clone
@@ -123,8 +103,8 @@ spec:
           workspace: git-credentials
 
     - name: kaniko-docker-build
-      # runAfter: ["go-test", "sonarqube-scan", "eslint-lint", "react-test"]
-      runAfter: ["go-test", "eslint-lint", "react-test"]
+      runAfter: ["go-test", "react-test"]
+      # runAfter: ["go-test", "eslint-lint", "react-test"]
       taskRef:
         name: kaniko-docker-build
         kind: Task

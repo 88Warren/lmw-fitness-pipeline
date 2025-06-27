@@ -7,10 +7,6 @@ spec:
   params:
     - name: GITHUB_CLONE_URL
       value: $(body.repository.clone_url)
-    # - name: SONAR_HOST_URL
-    #   value: "https://sonarqube.lmwfitness.com"
-    # - name: PROJECT_KEY
-    #   value: "$(body.repository.name)-$(body.after)"
     - name: GITHUB_HELM_URL
       value: "https://github.com/88Warren/lmw-fitness-helmchart.git"
     - name: IMAGE
