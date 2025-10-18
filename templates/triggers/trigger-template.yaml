@@ -6,18 +6,15 @@ metadata:
 spec:
   params:
   - name: GITHUB_CLONE_URL
-  - name: SONAR_HOST_URL
-  - name: PROJECT_KEY
   - name: GITHUB_HELM_URL
-  - name: IMAGE
+  - name: IMAGE_REPO
+  - name: APPLICATION_TYPE
   - name: DOCKERFILE
   - name: CONTEXT
   - name: BUILDER_IMAGE
   - name: TRIVY_SEVERITY
-  - name: VALUES_MANIFEST_PATH
-  - name: SERVICE_TYPE
-  - name: HELM_FILE
-  - name: COMMIT_MESSAGE
+  - name: HELM_CHART_PATH
+  - name: PIPELINE_SEQUENCE_ID
   resourcetemplates:
   - apiVersion: tekton.dev/v1
     kind: PipelineRun
@@ -32,8 +29,10 @@ spec:
         value: $(tt.params.GITHUB_CLONE_URL)
       - name: GITHUB_HELM_URL
         value: $(tt.params.GITHUB_HELM_URL)
-      - name: IMAGE
-        value: $(tt.params.IMAGE)
+      - name: IMAGE_REPO
+        value: $(tt.params.IMAGE_REPO)
+      - name: APPLICATION_TYPE
+        value: $(tt.params.APPLICATION_TYPE)
       - name: DOCKERFILE
         value: $(tt.params.DOCKERFILE)
       - name: CONTEXT
@@ -42,14 +41,10 @@ spec:
         value: $(tt.params.BUILDER_IMAGE)
       - name: TRIVY_SEVERITY
         value: $(tt.params.TRIVY_SEVERITY)
-      - name: VALUES_MANIFEST_PATH
-        value: $(tt.params.VALUES_MANIFEST_PATH)
-      - name: SERVICE_TYPE
-        value: $(tt.params.SERVICE_TYPE)
-      - name: HELM_FILE
-        value: $(tt.params.HELM_FILE)
-      - name: COMMIT_MESSAGE
-        value: $(tt.params.COMMIT_MESSAGE)
+      - name: HELM_CHART_PATH
+        value: $(tt.params.HELM_CHART_PATH)
+      - name: PIPELINE_SEQUENCE_ID
+        value: $(tt.params.PIPELINE_SEQUENCE_ID)
       workspaces:
         - name: source
           volumeClaimTemplate:

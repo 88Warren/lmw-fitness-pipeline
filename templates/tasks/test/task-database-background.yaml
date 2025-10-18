@@ -1,0 +1,32 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: database-background
+  namespace: lmw-fitness
+spec:
+  steps:
+    - name: database
+      image: postgres:14.4-alpine
+      env:
+        - name: POSTGRES_DB
+          value: testdb
+        - name: POSTGRES_USER
+          value: postgres
+        - name: POSTGRES_PASSWORD
+          value: password
+      script: |
+        #!/bin/sh
+        echo "Starting PostgreSQL database for testing..."
+        docker-entrypoint.sh postgres &
+        
+        # Keep the container running
+        while true; do
+          sleep 30
+        done
+      resources:
+        requests:
+          memory: 100Mi
+          cpu: 100m
+        limits:
+          memory: 100Mi
+          cpu: 100m

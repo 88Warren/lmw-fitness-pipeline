@@ -18,6 +18,36 @@ webserver:
   backendUrl: "https://api.lmwfitness.co.uk"
   cacheBreaker: "$(context.pipelineRun.startTime)"
 
+# Pipeline configuration
+pipeline:
+  # Default values for pipeline parameters
+  github:
+    cloneUrl: "https://github.com/lmwcode/lmwfitness.git"
+    helmUrl: "https://github.com/lmwcode/lmwfitness-helmcharts.git"
+  
+  # Image configuration
+  images:
+    frontend:
+      repository: "index.docker.io/lmwcode/lmw-fitness-frontend"
+    backend:
+      repository: "index.docker.io/lmwcode/lmw-fitness-backend"
+  
+  # Build configuration
+  build:
+    dockerfile: "Dockerfile"
+    context: "."
+    builderImage: "gcr.io/kaniko-project/executor:latest"
+  
+  # Security scanning
+  security:
+    trivySeverity: "CRITICAL,HIGH"
+  
+  # Helm deployment
+  helm:
+    charts:
+      frontend: "frontend"
+      backend: "backend"
+
 # This is for the secrets for pulling an image from a private repository more information can be found here: https://kubernetes.io/docs/tasks/configure-pod-container/pull-image-private-registry/
 imagePullSecrets: []
 # This is to override the chart name.

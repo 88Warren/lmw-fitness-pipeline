@@ -17,10 +17,18 @@ spec:
     This Task stores the image name and digest as results, allowing Tekton Chains
     to pick up that an image was built & sign it.
   params:
-    - name: IMAGE
+    - name: IMAGE_REPO
+      type: string
+      description: Docker image repository
+    - name: PIPELINE_SEQUENCE_ID
+      type: string
+      description: Pipeline sequence ID for image tagging
     - name: DOCKERFILE
+      type: string
     - name: CONTEXT
+      type: string
     - name: BUILDER_IMAGE
+      type: string
   results:
     - name: IMAGE_DIGEST
       type: string
@@ -39,7 +47,7 @@ spec:
     - args:
         - --dockerfile=$(params.DOCKERFILE)
         - --context=$(workspaces.source.path)/$(params.CONTEXT)
-        - --destination=$(params.IMAGE)
+        - --destination=$(params.IMAGE_REPO):v.$(params.PIPELINE_SEQUENCE_ID)
         - --digest-file=$(results.IMAGE_DIGEST.path)
         - "--cache=false"  
         - "--build-arg=VITE_BACKEND_URL={{ .Values.webserver.backendUrl }}"
@@ -55,7 +63,7 @@ spec:
       name: write-url
       script: |
         set -e
-        image="$(params.IMAGE)"
+        image="$(params.IMAGE_REPO):v.$(params.PIPELINE_SEQUENCE_ID)"
         echo -n "${image}" | tee "$(results.IMAGE_URL.path)"
   workspaces:
     - description: Holds the context and Dockerfile

@@ -4,7 +4,7 @@ metadata:
   name: trivy-scan
   namespace: lmw-fitness
 spec:
-  description: Scans a built Docker image for vulnerabilities using Trivy.
+  description: Scans a built Docker image for vulnerabilities using Trivy with Docker-in-Docker support.
   params:
     - name: IMAGE
       type: string
@@ -13,9 +13,34 @@ spec:
       type: string
       description: Comma-separated list of severities to scan for.
   steps:
+    - name: background-dind
+      image: docker:dind
+      securityContext:
+        privileged: true
+      script: |
+        #!/bin/sh
+        echo "Starting Docker daemon..."
+        dockerd &
+        sleep 10
+        echo "Docker daemon started"
+      resources:
+        requests:
+          memory: 250Mi
+          cpu: 100m
+        limits:
+          memory: 500Mi
+          cpu: 250m
     - name: trivy-scan
       image: aquasec/trivy:latest
       script: |
         #!/bin/sh
         set -e
+        echo "Scanning image $(params.IMAGE) for $(params.TRIVY_SEVERITY) vulnerabilities..."
         trivy image --scanners vuln --exit-code 1 --severity $(params.TRIVY_SEVERITY) $(params.IMAGE)
+      resources:
+        requests:
+          memory: 250Mi
+          cpu: 100m
+        limits:
+          memory: 500Mi
+          cpu: 250m

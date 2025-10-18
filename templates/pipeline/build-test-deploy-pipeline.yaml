@@ -5,8 +5,8 @@ metadata:
   namespace: lmw-fitness
 spec:
   description: |
-    This pipeline clones a git repo, builds an image with Kaniko and
-    pushes it to a registry   
+    This pipeline clones a git repo, runs tests and linting, builds an image with Kaniko,
+    scans for vulnerabilities, and deploys using Helm charts
   params:
     - name: GITHUB_CLONE_URL
       type: string
@@ -14,9 +14,12 @@ spec:
     - name: GITHUB_HELM_URL
       type: string
       description: URL of the GitHub Helm chart repository to clone
-    - name: IMAGE
+    - name: IMAGE_REPO
       type: string
-      description: Name of the image to build and push
+      description: Docker image repository
+    - name: APPLICATION_TYPE
+      type: string
+      description: Type of application (frontend or backend)
     - name: DOCKERFILE
       type: string
       description: Path to the Dockerfile
@@ -29,18 +32,12 @@ spec:
     - name: TRIVY_SEVERITY
       type: string
       description: Comma-separated list of severities to scan for (e.g. "CRITICAL,HIGH")
-    - name: VALUES_MANIFEST_PATH
+    - name: HELM_CHART_PATH
       type: string
-      description: Path to the Helm values manifest file
-    - name: SERVICE_TYPE
-      type: string  
-      description: Type of service to deploy (e.g. "web", "api", etc.)
-    - name: HELM_FILE
+      description: Path to the Helm chart (frontend or backend)
+    - name: PIPELINE_SEQUENCE_ID
       type: string
-      description: Path to the Helm chart file
-    - name: COMMIT_MESSAGE
-      type: string
-      description: Commit message for the Helm chart changes
+      description: Pipeline sequence ID for image tagging
   workspaces:
     - name: git-credentials
     - name: helm-chart
@@ -62,28 +59,87 @@ spec:
         - name: source
           workspace: source
 
-    # - name: eslint-lint
-    #   runAfter: ["git-clone"]
-    #   taskRef:
-    #     name: eslint-lint
-    #     kind: Task
-    #   workspaces:
-    #     - name: source
-    #       workspace: source
-          
-    - name: go-test
+    - name: debug-repo-var
       runAfter: ["git-clone"]
       taskRef:
-        name: go-test
+        name: debug-repo-var
+        kind: Task
+      params:
+        - name: IMAGE_REPO
+          value: $(params.IMAGE_REPO)
+        - name: PIPELINE_SEQUENCE_ID
+          value: $(params.PIPELINE_SEQUENCE_ID)
+
+    - name: frontend-lint
+      runAfter: ["git-clone"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["frontend"]
+      taskRef:
+        name: frontend-lint
         kind: Task
       workspaces:
         - name: source
           workspace: source
 
-    - name: react-test
-      runAfter: ["git-clone"]
+    - name: frontend-unit-tests
+      runAfter: ["frontend-lint"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["frontend"]
       taskRef:
-        name: react-test
+        name: frontend-unit-tests
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: npm-audit
+      runAfter: ["frontend-unit-tests"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["frontend"]
+      taskRef:
+        name: npm-audit
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: backend-lint
+      runAfter: ["git-clone"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["backend"]
+      taskRef:
+        name: backend-lint
+        kind: Task
+      workspaces:
+        - name: source
+          workspace: source
+
+    - name: database-background
+      runAfter: ["git-clone"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["backend"]
+      taskRef:
+        name: database-background
+        kind: Task
+
+    - name: backend-tests
+      runAfter: ["backend-lint", "database-background"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["backend"]
+      taskRef:
+        name: backend-tests
         kind: Task
       workspaces:
         - name: source
@@ -103,28 +159,33 @@ spec:
           workspace: git-credentials
 
     - name: kaniko-docker-build
-      runAfter: ["go-test", "react-test"]
-      # runAfter: ["go-test", "eslint-lint", "react-test"]
+      runAfter: ["npm-audit", "backend-tests"]
       taskRef:
         name: kaniko-docker-build
         kind: Task
       workspaces:
-      - name: source
-        workspace: source
-      - name: docker-config
-        workspace: docker-config
+        - name: source
+          workspace: source
+        - name: docker-config
+          workspace: docker-config
       params:
-      - name: IMAGE
-        value: $(params.IMAGE)
-      - name: DOCKERFILE
-        value: $(params.DOCKERFILE)
-      - name: CONTEXT
-        value: $(params.CONTEXT)
-      - name: BUILDER_IMAGE
-        value: $(params.BUILDER_IMAGE)
+        - name: IMAGE_REPO
+          value: $(params.IMAGE_REPO)
+        - name: PIPELINE_SEQUENCE_ID
+          value: $(params.PIPELINE_SEQUENCE_ID)
+        - name: DOCKERFILE
+          value: $(params.DOCKERFILE)
+        - name: CONTEXT
+          value: $(params.CONTEXT)
+        - name: BUILDER_IMAGE
+          value: $(params.BUILDER_IMAGE)
 
     - name: trivy-scan
       runAfter: ["kaniko-docker-build"]
+      when:
+        - input: "$(params.APPLICATION_TYPE)"
+          operator: in
+          values: ["backend"]
       taskRef:
         name: trivy-scan
         kind: Task
@@ -133,37 +194,19 @@ spec:
           value: $(tasks.kaniko-docker-build.results.IMAGE_URL)
         - name: TRIVY_SEVERITY
           value: $(params.TRIVY_SEVERITY)
-          
-    - name: update-image
-      runAfter: ["trivy-scan"]
+
+    - name: helm-deploy
+      runAfter: ["trivy-scan", "kaniko-docker-build"]
       taskRef:
-        name: update-image
+        name: helm-deploy
         kind: Task
       params:
-        - name: VALUES_MANIFEST_PATH
-          value: $(params.VALUES_MANIFEST_PATH)
-        - name: SERVICE_TYPE
-          value: $(params.SERVICE_TYPE)
-        - name: IMAGE
-          value: $(tasks.kaniko-docker-build.results.IMAGE_URL)
+        - name: HELM_CHART_PATH
+          value: $(params.HELM_CHART_PATH)
+        - name: IMAGE_REPO
+          value: $(params.IMAGE_REPO)
+        - name: PIPELINE_SEQUENCE_ID
+          value: $(params.PIPELINE_SEQUENCE_ID)
       workspaces:
         - name: helm-chart
           workspace: helm-chart
-    
-    - name: commit-helm-changes
-      runAfter: ["update-image"]
-      taskRef:
-        name: commit-helm-changes
-        kind: Task
-      params:
-        - name: HELM_FILE
-          value: $(params.HELM_FILE)
-        - name: COMMIT_MESSAGE
-          value: $(params.COMMIT_MESSAGE)
-        - name: GITHUB_HELM_URL
-          value: $(params.GITHUB_HELM_URL)
-      workspaces:
-        - name: helm-chart
-          workspace: helm-chart
-        - name: git-credentials
-          workspace: git-credentials

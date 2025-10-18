@@ -1,22 +1,55 @@
-apiVersion: tekton.dev/v1beta1
+apiVersion: tekton.dev/v1
 kind: Task
 metadata:
-  name: go-test
+  name: backend-tests
   namespace: lmw-fitness
 spec:
-  steps:
-  - name: go-test
-    image: golang
-    workingDir: $(workspaces.source.path)
-    script: |
-      #!/bin/sh
-      set -e
-
-       if [ -f "$(workspaces.source.path)/go.mod" ]; then
-        echo "Running Go tests for the backend"
-        go test -v -cover $(workspaces.source.path)/...
-      else
-        echo "No go.mod file found. Skipping Go tests (likely frontend)"
-      fi
   workspaces:
-  - name: source
+    - name: source
+  steps:
+    - name: backend-tests
+      image: golang:1.24-alpine
+      workingDir: $(workspaces.source.path)
+      env:
+        - name: DB_HOST
+          value: localhost
+        - name: DB_PORT
+          value: "5432"
+        - name: DB_USER
+          value: postgres
+        - name: DB_PASSWORD
+          value: password
+        - name: DB_NAME
+          value: testdb
+      script: |
+        #!/bin/sh
+        set -e
+        
+        # Check if this is a Go project
+        if [ -f "go.mod" ]; then
+          echo "Installing PostgreSQL client..."
+          apk add --no-cache postgresql-client
+          
+          echo "Waiting for PostgreSQL to start..."
+          for i in $(seq 1 30); do
+            if pg_isready -h localhost -p 5432 -U postgres > /dev/null 2>&1; then
+              echo "PostgreSQL is up!"
+              break
+            fi
+            echo "Waiting..."
+            sleep 2
+          done
+          
+          echo "Running Go tests for the backend..."
+          go mod download
+          go test ./...
+        else
+          echo "No go.mod file found. Skipping Go tests."
+        fi
+      resources:
+        requests:
+          memory: 100Mi
+          cpu: 100m
+        limits:
+          memory: 1750Mi
+          cpu: 1250m

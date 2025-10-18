@@ -1,0 +1,27 @@
+apiVersion: tekton.dev/v1
+kind: Task
+metadata:
+  name: debug-repo-var
+  namespace: lmw-fitness
+spec:
+  params:
+    - name: IMAGE_REPO
+      type: string
+      description: Docker image repository
+    - name: PIPELINE_SEQUENCE_ID
+      type: string
+      description: Pipeline sequence ID for image tagging
+  steps:
+    - name: debug-repo-var
+      image: alpine:3.18
+      script: |
+        #!/bin/sh
+        echo "Resolved repo: $(params.IMAGE_REPO)"
+        echo "Tag: v.$(params.PIPELINE_SEQUENCE_ID)"
+      resources:
+        requests:
+          memory: 10Mi
+          cpu: 10m
+        limits:
+          memory: 10Mi
+          cpu: 10m

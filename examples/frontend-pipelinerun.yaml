@@ -1,0 +1,52 @@
+apiVersion: tekton.dev/v1
+kind: PipelineRun
+metadata:
+  name: lmwfitness-frontend-pipeline-run
+  namespace: lmw-fitness
+spec:
+  pipelineRef:
+    name: build-test-deploy-pipeline
+  params:
+    - name: GITHUB_CLONE_URL
+      value: "https://github.com/lmwcode/lmwfitness-frontend.git"
+    - name: GITHUB_HELM_URL
+      value: "https://github.com/lmwcode/lmwfitness-helmcharts.git"
+    - name: IMAGE_REPO
+      value: "index.docker.io/lmwcode/lmw-fitness-frontend"
+    - name: APPLICATION_TYPE
+      value: "frontend"
+    - name: DOCKERFILE
+      value: "Dockerfile"
+    - name: CONTEXT
+      value: "."
+    - name: BUILDER_IMAGE
+      value: "gcr.io/kaniko-project/executor:latest"
+    - name: TRIVY_SEVERITY
+      value: "CRITICAL,HIGH"
+    - name: HELM_CHART_PATH
+      value: "frontend"
+    - name: PIPELINE_SEQUENCE_ID
+      value: "1"
+  workspaces:
+    - name: source
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: helm-chart
+      volumeClaimTemplate:
+        spec:
+          accessModes:
+            - ReadWriteOnce
+          resources:
+            requests:
+              storage: 1Gi
+    - name: git-credentials
+      secret:
+        secretName: git-credentials
+    - name: docker-config
+      secret:
+        secretName: docker-config
